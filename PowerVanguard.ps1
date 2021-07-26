@@ -9,6 +9,17 @@ Mode 300
 Start-Sleep -Seconds '1'
 Set-ConsoleColor 'black' 'white'
 Start-Sleep -Seconds '1'
+
+Function Legend{
+
+Write-Host 'CRITICAL' -BackgroundColor 'Red'
+Write-Host 'IMPORTANT' -ForegroundColor 'Red'
+Write-Host 'Medium' -ForegroundColor 'Magenta'
+Write-Host 'Information' -ForegroundColor 'Green'
+Write-Host 'Contextual' -ForegroundColor 'Cyan'
+
+
+}
 Function CheckEncryption{
     Start-Sleep -Seconds '5'
     $ProtectionStatus = Get-BitLockerVolume -MountPoint C:
@@ -136,6 +147,33 @@ Function CheckUserPrivileges{
         Else
         {Write-Host '[!] WINDOWS VERSION IS NOT LATEST ' -ForegroundColor 'Red'}
 }
+Function CheckAutoPlay{
+    Write-Host 'Checking if AutoPlay is enabled for current user' -ForegroundColor 'Yellow'
+    ""
+        $CheckAutoPlay = Get-ItemProperty -Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers" | Select-Object -ExpandProperty 'DisableAutoplay'
+            If ($CheckAutoPlay -match '1'){Write-Host '[+] AutoPlay is disabled for current user' -ForegroundColor 'Green'}
+            If ($CheckAutoPlay -match '0'){Write-Host '[!] AutoPlay is enabled' -ForegroundColor 'Red'}
+}
+Function CheckAutoRun {
+    Write-Host 'Checking if AutoRun is enabled for current user' -ForegroundColor 'Yellow'
+    ""
+    $CheckAutoRun = Get-ItemProperty -Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Select-Object -ExpandProperty 'NoDriveTypeAutoRun'
+           If ($CheckAutoRun -ne '0'){Write-Host '[!] AutoRun is enabled' -ForegroundColor 'Red'}Else
+           {Write-Host '[+] AutoRun is disabled' -ForegroundColor 'Green'}
+}
+Function CheckIPV6{
+
+$IPV6Description = '
+By Default Windows is prone to IPV6 mitm attacks in which an attacker can masquerade as a DHCPv6 server. As Windows prefers IPV6 over IPv4 this means
+an attacker can capture credentials. Recommended action is to disable IPV6 on the network unless a DHCPv6 server is actively in use'
+    
+    
+    Write-Host 'Checking if IPV6 adapters are enabled' -ForegroundColor 'Yellow'
+    Write-Host ""
+            $CheckIPV6 = Get-NetAdapterBinding -ComponentID ms_tcpip6
+                If ($CheckIPV6.ComponentID -eq 'ms_tcpip6'){Write-Host '[!] IPV6 adapters have been found' -ForegroundColor 'Red' ; $CheckIPV6; Write-Host $IPV6Description -ForegroundColor 'Cyan'}Else
+                    {Write-Host '[+] No IPV6 adapters have been found' -ForegroundColor 'Green'}  
+}
 
 # Execution Logic
 CheckEncryption
@@ -149,11 +187,13 @@ CheckRunAs
 CheckUserPrivileges
 ""
 CheckWindowsVersion
-
+""
+CheckAutoPlay
+""
+CheckAutoRun
+""
+CheckIPV6
 
 
 # References
 #SMB protocol checks: https://docs.microsoft.com/en-us/windows-server/storage/file-server/troubleshoot/detect-enable-and-disable-smbv1-v2-v3#how-to-detect-status-enable-and-disable-smb-protocols-on-the-smb-client
-
-
-
