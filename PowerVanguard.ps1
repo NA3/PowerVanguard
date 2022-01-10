@@ -1,4 +1,6 @@
 #Powershell Vanguard
+
+$ErrorActionPreference = 'SilentlyContinue'
 function Set-ConsoleColor ($bc, $fc) {
     $Host.UI.RawUI.BackgroundColor = $bc
     $Host.UI.RawUI.ForegroundColor = $fc
@@ -165,16 +167,38 @@ Function CheckIPV6{
 
 $IPV6Description = '
 By Default Windows is prone to IPV6 mitm attacks in which an attacker can masquerade as a DHCPv6 server. As Windows prefers IPV6 over IPv4 this means
-an attacker can capture credentials. Recommended action is to disable IPV6 on the network unless a DHCPv6 server is actively in use'
+an attacker can capture credentials. It is Recommended to disable IPV6 on the network unless a DHCPv6 server is actively in use.'
     
     
     Write-Host 'Checking if IPV6 adapters are enabled' -ForegroundColor 'Yellow'
     Write-Host ""
             $CheckIPV6 = Get-NetAdapterBinding -ComponentID ms_tcpip6
-                If ($CheckIPV6.ComponentID -eq 'ms_tcpip6'){Write-Host '[!] IPV6 adapters have been found' -ForegroundColor 'Red' ; $CheckIPV6; Write-Host $IPV6Description -ForegroundColor 'Cyan'}Else
+                If ($CheckIPV6.ComponentID -eq 'ms_tcpip6'){Write-Host '[!] Active IPV6 adapters have been found' -ForegroundColor 'Red' ; $CheckIPV6; Write-Host $IPV6Description -ForegroundColor 'Cyan'}Else
                     {Write-Host '[+] No IPV6 adapters have been found' -ForegroundColor 'Green'}  
 }
+Function SensitiveInformationSearch{
 
+    Write-Host 'Searching user profiles for potentially sensitive information' -ForegroundColor 'Yellow'
+    
+    $Keywords = @(
+    "pass*"
+    "secret*"
+    "key*"
+    "cred*"
+    "confidential"
+    "Private"
+    "money"
+    "invoices"
+    "bank"
+    )
+    
+    $UserDirectories = Get-ChildItem -Path C:\Users -Recurse -Directory -Depth '20'
+    foreach ($keyword in $Keywords)
+        {Get-ChildItem -Path $UserDirectories.FullName $Keyword -Recurse -Verbose -ErrorAction 'SilentlyContinue' -Depth '0' | Select-Object 'Name', 'Directory'}
+    }
+
+
+    
 # Execution Logic
 CheckEncryption
 ""
@@ -193,7 +217,12 @@ CheckAutoPlay
 CheckAutoRun
 ""
 CheckIPV6
-
+""
+SensitiveInformationSearch
+""
 
 # References
 #SMB protocol checks: https://docs.microsoft.com/en-us/windows-server/storage/file-server/troubleshoot/detect-enable-and-disable-smbv1-v2-v3#how-to-detect-status-enable-and-disable-smb-protocols-on-the-smb-client
+
+
+
