@@ -1,4 +1,4 @@
-#Powershell Vanguard
+#PowerOverseer
 
 $ErrorActionPreference = 'SilentlyContinue'
 function Set-ConsoleColor ($bc, $fc) {
