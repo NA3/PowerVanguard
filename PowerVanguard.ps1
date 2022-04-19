@@ -1,4 +1,4 @@
-#PowerOverseer
+#PowerVanguard
 
 $ErrorActionPreference = 'SilentlyContinue'
 function Set-ConsoleColor ($bc, $fc) {
